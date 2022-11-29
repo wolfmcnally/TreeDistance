@@ -3,6 +3,7 @@ import WolfBase
 
 public final class TreeDistance<Node: TreeNodeProtocol> {
     typealias PostorderMap = ReversibleMap<Node, Int>
+    typealias UUIDMap = ReversibleMap<Node, UUID>
     
     public static func treeDistance(_ t1: Node, _ t2: Node) -> (cost: Double, edits: [Edit]) {
         var edits: [Edit] = []
@@ -172,7 +173,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         for edit in edits {
             switch edit.operation {
             case .insert:
-                let inserted = edit.firstNode
+                let inserted = edit.firstNode!
                 if let secondNode = edit.secondNode {
                     // insert a child and make demoted siblings its new children
                     let parent = secondNode
@@ -204,7 +205,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 
             case .delete:
                 // delete node from the tree, promoting its children
-                let deleted = edit.firstNode
+                let deleted = edit.firstNode!
                 let position = deleted.parent!.positionOfChild(deleted)
                 
                 for i in (0..<deleted.children.count).reversed() {
@@ -215,7 +216,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 deleted.parent!.deleteChild(deleted)
                 
             case .rename:
-                let first = edit.firstNode
+                let first = edit.firstNode!
                 let second = edit.secondNode!
                 first.label = second.label
             }
@@ -290,6 +291,21 @@ extension TreeDistance {
         return result
     }
     
+    static func uniqueIdentifiers(_ node: Node) -> UUIDMap {
+        let result = UUIDMap()
+        
+        f(node)
+        
+        func f(_ current: Node) {
+            for child in current.children {
+                f(child)
+            }
+            result.put(current, current.uuid)
+        }
+        
+        return result
+    }
+
     static func leftmostLeafDescendants(_ root: Node, postorderIDs: PostorderMap) -> [Node] {
         var result: [Node?] = Array(repeating: nil, count: postorderIDs.get(root) + 1)
         
@@ -341,14 +357,14 @@ extension TreeDistance {
 extension TreeDistance {
     public class Edit: Comparable, CustomStringConvertible {
         let operation: TreeOperation
-        let firstNode: Node
+        let firstNode: Node!
         let secondNode: Node!
         var position: Int! = nil
         var descendants: [Node]! = nil
         var childrenCount: Int! = nil
         let cost: Double
         
-        init(operation: TreeOperation, cost: Double, firstNode: Node, secondNode: Node? = nil) {
+        init(operation: TreeOperation, cost: Double, firstNode: Node? = nil, secondNode: Node? = nil) {
             self.operation = operation
             self.cost = cost
             self.firstNode = firstNode

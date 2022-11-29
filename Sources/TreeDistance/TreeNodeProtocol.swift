@@ -4,7 +4,7 @@ import OrderedCollections
 public protocol TreeNodeProtocol: AnyObject, Hashable {
     associatedtype Label
 
-    func clone() -> Self
+    var uuid: UUID { get }
     var label: Label { get set }
     var children: OrderedSet<Self> { get set }
     var parent: Self? { get set }
@@ -12,6 +12,7 @@ public protocol TreeNodeProtocol: AnyObject, Hashable {
     func deleteChild(_ child: Self)
     func positionOfChild(_ child: Self) -> Int
     func transformationCost(operation: TreeOperation, other: Self?) -> Double
+    func clone() -> Self
 }
 
 public extension TreeNodeProtocol {

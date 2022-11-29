@@ -2,11 +2,13 @@ import Foundation
 import OrderedCollections
 
 public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
+    public let uuid: UUID
     public var label: Label
     public var parent: TreeNode? = nil
     public var children: OrderedSet<TreeNode> = []
     
     public init(_ label: Label) {
+        self.uuid = UUID()
         self.label = label
     }
     
