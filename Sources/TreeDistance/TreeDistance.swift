@@ -14,7 +14,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         // prepare leftmost leaf descendants
         let lmld1 = leftmostLeafDescendants(t1, postorderIDs: postorder1)
         let lmld2 = leftmostLeafDescendants(t2, postorderIDs: postorder2)
-
+        
         // prepare keyroots
         let keyRoots1 = keyroots(t1, postorderIDs: postorder1)
         let keyRoots2 = keyroots(t2, postorderIDs: postorder2)
@@ -27,7 +27,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         var treeDistance: [[ForestTrail?]] = Array(repeating: Array(repeating: nil, count: tree1NodesCount), count: tree2NodesCount)
         
         var matchedNodes: [Node: Node] = [:]
-
+        
         // calculate tree distance
         for keyRoot1 in keyRoots1 {
             for keyRoot2 in keyRoots2 {
@@ -41,7 +41,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         let cost = treeDistance[tree2MaxIndex][tree1MaxIndex]!.totalCost
         
         return (cost, edits)
-
+        
         func forestDistance(_ keyRoot1: Node, _ keyRoot2: Node) {
             let kr1 = postorder1.get(keyRoot1)
             let kr2 = postorder2.get(keyRoot2)
@@ -224,7 +224,9 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         
         return root
     }
-    
+}
+
+extension TreeDistance {
     class ForestTrail: CustomStringConvertible {
         var operation: TreeOperation! = nil
         var cost: Double = 0
@@ -271,54 +273,13 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
             return comps.joined(separator: ", ").flanked("(", ")")
         }
     }
-                                                                
-    public class Edit: Comparable, CustomStringConvertible {
-        let operation: TreeOperation
-        let firstNode: Node
-        let secondNode: Node!
-        var position: Int! = nil
-        var descendants: [Node]! = nil
-        var childrenCount: Int! = nil
-        let cost: Double
-        
-        init(operation: TreeOperation, cost: Double, firstNode: Node, secondNode: Node? = nil) {
-            self.operation = operation
-            self.cost = cost
-            self.firstNode = firstNode
-            self.secondNode = secondNode
-        }
-
-        public static func == (lhs: Edit, rhs: Edit) -> Bool {
-            lhs.operation == rhs.operation
-        }
-        
-        public static func < (lhs: Edit, rhs: Edit) -> Bool {
-            lhs.operation < rhs.operation
-        }
-        
-        public var description: String {
-            var comps: [String] = []
-            comps.append(operation†)
-            comps.append("firstNode: \(firstNode†)")
-            if let secondNode {
-                comps.append("secondNode: \(secondNode†)")
-            }
-            comps.append("cost: \(cost)")
-            if operation == .insert {
-                comps.append("position: \(position†)")
-                comps.append("descendants: \(descendants†)")
-                comps.append("childrenCount: \(childrenCount†)")
-            }
-            return comps.joined(separator: ", ").flanked("(", ")")
-        }
-    }
     
     static func postorderIdentifiers(_ node: Node) -> PostorderMap {
         var nextID = 0
         let result = PostorderMap()
-
+        
         f(node)
-
+        
         func f(_ current: Node) {
             for child in current.children {
                 f(child)
@@ -375,5 +336,48 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         }
         
         return result.sorted { postorderIDs.get($0) < postorderIDs.get($1) }
+    }
+}
+
+extension TreeDistance {
+    public class Edit: Comparable, CustomStringConvertible {
+        let operation: TreeOperation
+        let firstNode: Node
+        let secondNode: Node!
+        var position: Int! = nil
+        var descendants: [Node]! = nil
+        var childrenCount: Int! = nil
+        let cost: Double
+        
+        init(operation: TreeOperation, cost: Double, firstNode: Node, secondNode: Node? = nil) {
+            self.operation = operation
+            self.cost = cost
+            self.firstNode = firstNode
+            self.secondNode = secondNode
+        }
+        
+        public static func == (lhs: Edit, rhs: Edit) -> Bool {
+            lhs.operation == rhs.operation
+        }
+        
+        public static func < (lhs: Edit, rhs: Edit) -> Bool {
+            lhs.operation < rhs.operation
+        }
+        
+        public var description: String {
+            var comps: [String] = []
+            comps.append(operation†)
+            comps.append("firstNode: \(firstNode†)")
+            if let secondNode {
+                comps.append("secondNode: \(secondNode†)")
+            }
+            comps.append("cost: \(cost)")
+            if operation == .insert {
+                comps.append("position: \(position†)")
+                comps.append("descendants: \(descendants†)")
+                comps.append("childrenCount: \(childrenCount†)")
+            }
+            return comps.joined(separator: ", ").flanked("(", ")")
+        }
     }
 }
