@@ -172,7 +172,6 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                         }
                     }
                     
-                    edit.descendants = descendents
                     edit.descendantIDs = descendents.map { $0.uuid }
                 }
             }
@@ -195,8 +194,8 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     
                     var toRemove: [Node] = []
                     for child in parent.children {
-                        for desc in edit.descendants {
-                            if desc === child {
+                        for descID in edit.descendantIDs {
+                            if descID == child.uuid {
                                 toRemove.append(child)
                                 inserted.addChild(child: child, position: inserted.children.count)
                                 child.parent = inserted
@@ -384,7 +383,6 @@ extension TreeDistance {
         var newID: UUID! = nil
 
         var position: Int! = nil
-        var descendants: [Node]! = nil
         var descendantIDs: [UUID]! = nil
         var childrenCount: Int! = nil
         
@@ -415,7 +413,7 @@ extension TreeDistance {
             comps.append("cost: \(cost)")
             if operation == .insert {
                 comps.append("position: \(position†)")
-                comps.append("descendants: \(descendants†)")
+                comps.append("descendantIDs: \(descendantIDs†)")
                 comps.append("childrenCount: \(childrenCount†)")
             }
             return comps.joined(separator: ", ").flanked("(", ")")
