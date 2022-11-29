@@ -4,6 +4,7 @@ import WolfBase
 public final class TreeDistance<Node: TreeNodeProtocol> {
     typealias PostorderMap = ReversibleMap<Node, Int>
     typealias UUIDMap = ReversibleMap<Node, UUID>
+    public typealias Label = Node.Label
     
     public static func treeDistance(_ t1: Node, _ t2: Node) -> (cost: Double, edits: [Edit]) {
         var edits: [Edit] = []
@@ -132,24 +133,42 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     matchedIDs[current.first.uuid] = clone.uuid
                     
                     if let second = current.second {
-                        edit = Edit(operation: .insert, cost: current.cost)
-                        edit.newID = clone.uuid
-                        edit.newLabel = clone.label
-                        edit.existingID = matchedNodes[second]!.uuid
-                        edit.position = current.first.parent!.positionOfChild(current.first)
-                        edit.childrenCount = current.second.children.count
+                        edit = Edit(
+                            cost: current.cost,
+                            operation: .insert(
+                                id: clone.uuid,
+                                label: clone.label,
+                                parent: matchedNodes[second]!.uuid,
+                                position: current.first.parent!.positionOfChild(current.first),
+                                childrenCount: current.second.children.count,
+                                descendants: []
+                            )
+                        )
                     } else {
-                        edit = Edit(operation: .insert, cost: current.cost)
-                        edit.newID = clone.uuid
-                        edit.newLabel = clone.label
+                        edit = Edit(
+                            cost: current.cost,
+                            operation: .insertRoot(
+                                id: clone.uuid,
+                                label: clone.label
+                            )
+                        )
                     }
                 case .delete:
-                    edit = Edit(operation: .delete, cost: current.cost)
-                    edit.existingID = current.first.uuid
+                    edit = Edit(
+                        cost: current.cost,
+                        operation: .delete(
+                            id: current.first.uuid
+                        )
+                    )
                 case .rename:
-                    edit = Edit(operation: .rename, cost: current.cost)
-                    edit.existingID = current.first.uuid
-                    edit.newLabel = current.second.label
+                    edit = Edit(
+                        cost: current.cost,
+                        operation: .rename(
+                            id: current.first.uuid,
+                            label: current.second.label
+                        )
+                    )
+
                     matchedNodes[current.second] = current.first
                     matchedIDs[current.second.uuid] = current.first.uuid
                 }
@@ -157,22 +176,29 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 edits.append(edit)
                 applyForestTrails(current.nextState)
                 
-                if current.operation == .insert {
-                    var descendents: [Node] = []
+                if case let .insert(id, label, parent, position, childrenCount, _) = edit.operation {
+                    var descendents: [UUID] = []
                     
                     f(current.first)
                     
                     func f(_ cur: Node) {
                         for child in cur.children {
                             if let descendant = matchedNodes[child] {
-                                descendents.append(descendant)
+                                descendents.append(descendant.uuid)
                             }
                             
                             f(child)
                         }
                     }
-                    
-                    edit.descendantIDs = descendents.map { $0.uuid }
+
+                    edit.operation = .insert(
+                        id: id,
+                        label: label,
+                        parent: parent,
+                        position: position,
+                        childrenCount: childrenCount,
+                        descendants: descendents
+                    )
                 }
             }
         }
@@ -185,44 +211,41 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         
         for edit in edits {
             switch edit.operation {
-            case .insert:
-                if let existingID = edit.existingID {
-                    let existingNode = uniqueIDs.getInverse(existingID)
-                    // insert a child and make demoted siblings its new children
-                    let inserted = Node(edit.newLabel, uuid: edit.newID)
-                    let parent = existingNode
-                    
-                    var toRemove: [Node] = []
-                    for child in parent.children {
-                        for descID in edit.descendantIDs {
-                            if descID == child.uuid {
-                                toRemove.append(child)
-                                inserted.addChild(child: child, position: inserted.children.count)
-                                child.parent = inserted
-                            }
+            case .insert(let id, let label, let parent, let position, let childrenCount, let descendants):
+                // insert a child and make demoted siblings its new children
+                let existingNode = uniqueIDs.getInverse(parent)
+                let inserted = Node(label, uuid: id)
+                let parent = existingNode
+                
+                var toRemove: [Node] = []
+                for child in parent.children {
+                    for descID in descendants {
+                        if descID == child.uuid {
+                            toRemove.append(child)
+                            inserted.addChild(child: child, position: inserted.children.count)
+                            child.parent = inserted
                         }
                     }
-                    
-                    for child in toRemove {
-                        parent.deleteChild(child)
-                    }
-                    
-                    let index = max(0, parent.children.count - edit.childrenCount + 1 + edit.position)
-                    parent.addChild(child: inserted, position: index)
-                    inserted.parent = parent
-                    uniqueIDs.put(inserted, inserted.uuid)
-                } else {
-                    // insert a new root node
-                    let inserted = Node(edit.newLabel, uuid: edit.newID)
-                    inserted.addChild(child: resultRoot, position: 0)
-                    resultRoot.parent = inserted
-                    resultRoot = inserted
-                    uniqueIDs.put(inserted, inserted.uuid)
                 }
                 
-            case .delete:
+                for child in toRemove {
+                    parent.deleteChild(child)
+                }
+                
+                let index = max(0, parent.children.count - childrenCount + 1 + position)
+                parent.addChild(child: inserted, position: index)
+                inserted.parent = parent
+                uniqueIDs.put(inserted, inserted.uuid)
+            case .insertRoot(let id, let label):
+                // insert a new root node
+                let inserted = Node(label, uuid: id)
+                inserted.addChild(child: resultRoot, position: 0)
+                resultRoot.parent = inserted
+                resultRoot = inserted
+                uniqueIDs.put(inserted, inserted.uuid)
+            case .delete(let id):
                 // delete node from the tree, promoting its children
-                let deletedNode = uniqueIDs.getInverse(edit.existingID)
+                let deletedNode = uniqueIDs.getInverse(id)
                 let position = deletedNode.parent!.positionOfChild(deletedNode)
                 
                 for i in (0..<deletedNode.children.count).reversed() {
@@ -231,11 +254,10 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 }
                 
                 deletedNode.parent!.deleteChild(deletedNode)
-                uniqueIDs.removeInverse(edit.existingID)
-                
-            case .rename:
-                let node = uniqueIDs.getInverse(edit.existingID!)
-                node.label = edit.newLabel
+                uniqueIDs.removeInverse(id)
+            case .rename(let id, let label):
+                let node = uniqueIDs.getInverse(id)
+                node.label = label
             }
         }
         
@@ -372,42 +394,51 @@ extension TreeDistance {
 }
 
 extension TreeDistance {
-    public class Edit: Comparable, CustomStringConvertible {
-        let cost: Double
-        let operation: TreeOperation
+    public class Edit: Comparable {
+        public let cost: Double
+        public var operation: Operation
         
-        var existingID: UUID! = nil
-        var newID: UUID! = nil
-
-        var position: Int! = nil
-        var descendantIDs: [UUID]! = nil
-        var childrenCount: Int! = nil
+        public enum Operation {
+            case delete(id: UUID)
+            case rename(id: UUID, label: Label)
+            case insertRoot(id: UUID, label: Label)
+            case insert(id: UUID, label: Label, parent: UUID, position: Int, childrenCount: Int, descendants: [UUID])
+        }
         
-        var newLabel: Node.Label! = nil
-        
-        init(operation: TreeOperation, cost: Double) {
-            self.operation = operation
+        init(cost: Double, operation: Operation) {
             self.cost = cost
+            self.operation = operation
+        }
+        
+        var ordinal: Int {
+            switch operation {
+            case .delete:
+                return 0
+            case .rename:
+                return 1
+            case .insert, .insertRoot:
+                return 2
+            }
         }
         
         public static func == (lhs: Edit, rhs: Edit) -> Bool {
-            lhs.operation == rhs.operation
+            lhs.ordinal == rhs.ordinal
         }
         
         public static func < (lhs: Edit, rhs: Edit) -> Bool {
-            lhs.operation < rhs.operation
+            lhs.ordinal < rhs.ordinal
         }
         
-        public var description: String {
-            var comps: [String] = []
-            comps.append(operation†)
-            comps.append("cost: \(cost)")
-            if operation == .insert {
-                comps.append("position: \(position†)")
-                comps.append("descendantIDs: \(descendantIDs†)")
-                comps.append("childrenCount: \(childrenCount†)")
-            }
-            return comps.joined(separator: ", ").flanked("(", ")")
-        }
+//        public var description: String {
+//            var comps: [String] = []
+//            comps.append(operation†)
+//            comps.append("cost: \(cost)")
+//            if operation == .insert {
+//                comps.append("position: \(position†)")
+//                comps.append("descendantIDs: \(descendantIDs†)")
+//                comps.append("childrenCount: \(childrenCount†)")
+//            }
+//            return comps.joined(separator: ", ").flanked("(", ")")
+//        }
     }
 }
