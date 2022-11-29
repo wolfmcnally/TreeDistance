@@ -133,10 +133,15 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     
                     if let second = current.second {
                         edit = Edit(operation: .insert, cost: current.cost, firstNode: clone, secondNode: matchedNodes[second])
+                        edit.newID = clone.uuid
+                        edit.newLabel = clone.label
+                        edit.existingID = matchedNodes[second]!.uuid
                         edit.position = current.first.parent!.positionOfChild(current.first)
                         edit.childrenCount = current.second.children.count
                     } else {
                         edit = Edit(operation: .insert, cost: current.cost, firstNode: clone)
+                        edit.newID = clone.uuid
+                        edit.newLabel = clone.label
                     }
                 case .delete:
                     edit = Edit(operation: .delete, cost: current.cost)
@@ -215,7 +220,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 
             case .delete:
                 // delete node from the tree, promoting its children
-                let deletedNode = uniqueIDs.getInverse(edit.existingID!)
+                let deletedNode = uniqueIDs.getInverse(edit.existingID)
                 let position = deletedNode.parent!.positionOfChild(deletedNode)
                 
                 for i in (0..<deletedNode.children.count).reversed() {
@@ -224,6 +229,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 }
                 
                 deletedNode.parent!.deleteChild(deletedNode)
+                uniqueIDs.removeInverse(edit.existingID)
                 
             case .rename:
                 let node = uniqueIDs.getInverse(edit.existingID!)
@@ -372,7 +378,7 @@ extension TreeDistance {
         let secondNode: Node!
         
         var existingID: UUID! = nil
-        let secondID: UUID! = nil
+        var newID: UUID! = nil
 
         var position: Int! = nil
         var descendants: [Node]! = nil

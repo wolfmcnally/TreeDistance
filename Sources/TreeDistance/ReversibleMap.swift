@@ -30,6 +30,13 @@ final class ReversibleMap<K: Hashable, V: Hashable> {
         inverse.removeValue(forKey: v)
     }
     
+    func removeInverse(_ v: V) {
+        guard let k = inverse.removeValue(forKey: v) else {
+            return
+        }
+        dict.removeValue(forKey: k)
+    }
+    
     func put<S>(contentsOf m: S) where S: Sequence, S.Element == (key: K, value: V) {
         for (k, v) in m {
             put(k, v)
