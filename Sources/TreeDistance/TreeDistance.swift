@@ -132,14 +132,14 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     matchedIDs[current.first.uuid] = clone.uuid
                     
                     if let second = current.second {
-                        edit = Edit(operation: .insert, cost: current.cost, firstNode: clone, secondNode: matchedNodes[second])
+                        edit = Edit(operation: .insert, cost: current.cost)
                         edit.newID = clone.uuid
                         edit.newLabel = clone.label
                         edit.existingID = matchedNodes[second]!.uuid
                         edit.position = current.first.parent!.positionOfChild(current.first)
                         edit.childrenCount = current.second.children.count
                     } else {
-                        edit = Edit(operation: .insert, cost: current.cost, firstNode: clone)
+                        edit = Edit(operation: .insert, cost: current.cost)
                         edit.newID = clone.uuid
                         edit.newLabel = clone.label
                     }
@@ -187,10 +187,11 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         for edit in edits {
             switch edit.operation {
             case .insert:
-                if let secondNode = edit.secondNode {
+                if let existingID = edit.existingID {
+                    let existingNode = uniqueIDs.getInverse(existingID)
                     // insert a child and make demoted siblings its new children
-                    let inserted = edit.firstNode!
-                    let parent = secondNode
+                    let inserted = Node(edit.newLabel, uuid: edit.newID)
+                    let parent = existingNode
                     
                     var toRemove: [Node] = []
                     for child in parent.children {
@@ -210,12 +211,14 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     let index = max(0, parent.children.count - edit.childrenCount + 1 + edit.position)
                     parent.addChild(child: inserted, position: index)
                     inserted.parent = parent
+                    uniqueIDs.put(inserted, inserted.uuid)
                 } else {
                     // insert a new root node
-                    let inserted = edit.firstNode!
+                    let inserted = Node(edit.newLabel, uuid: edit.newID)
                     inserted.addChild(child: resultRoot, position: 0)
                     resultRoot.parent = inserted
                     resultRoot = inserted
+                    uniqueIDs.put(inserted, inserted.uuid)
                 }
                 
             case .delete:

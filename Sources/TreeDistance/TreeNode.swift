@@ -7,8 +7,8 @@ public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
     public var parent: TreeNode? = nil
     public var children: OrderedSet<TreeNode> = []
     
-    public init(_ label: Label) {
-        self.uuid = UUID()
+    public init(_ label: Label, uuid: UUID? = nil) {
+        self.uuid = uuid ?? UUID()
         self.label = label
     }
     
