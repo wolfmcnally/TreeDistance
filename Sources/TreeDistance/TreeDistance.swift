@@ -373,11 +373,8 @@ extension TreeDistance {
 
 extension TreeDistance {
     public class Edit: Comparable, CustomStringConvertible {
-        let operation: TreeOperation
         let cost: Double
-
-        let firstNode: Node!
-        let secondNode: Node!
+        let operation: TreeOperation
         
         var existingID: UUID! = nil
         var newID: UUID! = nil
@@ -388,11 +385,9 @@ extension TreeDistance {
         
         var newLabel: Node.Label! = nil
         
-        init(operation: TreeOperation, cost: Double, firstNode: Node? = nil, secondNode: Node? = nil) {
+        init(operation: TreeOperation, cost: Double) {
             self.operation = operation
             self.cost = cost
-            self.firstNode = firstNode
-            self.secondNode = secondNode
         }
         
         public static func == (lhs: Edit, rhs: Edit) -> Bool {
@@ -406,10 +401,6 @@ extension TreeDistance {
         public var description: String {
             var comps: [String] = []
             comps.append(operation†)
-            comps.append("firstNode: \(firstNode†)")
-            if let secondNode {
-                comps.append("secondNode: \(secondNode†)")
-            }
             comps.append("cost: \(cost)")
             if operation == .insert {
                 comps.append("position: \(position†)")
