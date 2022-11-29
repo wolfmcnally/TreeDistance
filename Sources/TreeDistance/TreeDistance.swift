@@ -172,10 +172,10 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         for edit in edits {
             switch edit.operation {
             case .insert:
+                let inserted = edit.firstNode
                 if let secondNode = edit.secondNode {
                     // insert a child and make demoted siblings its new children
                     let parent = secondNode
-                    let inserted = edit.firstNode
                     
                     var toRemove: [Node] = []
                     for child in parent.children {
@@ -197,7 +197,6 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     inserted.parent = parent
                 } else {
                     // insert a new root node
-                    let inserted = edit.firstNode
                     inserted.addChild(child: root, position: 0)
                     root.parent = inserted
                     root = inserted
