@@ -130,15 +130,15 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 case .insert:
                     let clone = current.first.clone()
                     matchedNodes[current.first] = clone
-                    matchedIDs[current.first.uuid] = clone.uuid
+                    matchedIDs[current.first.id] = clone.id
                     
                     if let second = current.second {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insert(
-                                id: clone.uuid,
+                                id: clone.id,
                                 label: clone.label,
-                                parent: matchedNodes[second]!.uuid,
+                                parent: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
                                 childrenCount: current.second.children.count,
                                 descendants: []
@@ -148,7 +148,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insertRoot(
-                                id: clone.uuid,
+                                id: clone.id,
                                 label: clone.label
                             )
                         )
@@ -157,20 +157,20 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     edit = Edit(
                         cost: current.cost,
                         operation: .delete(
-                            id: current.first.uuid
+                            id: current.first.id
                         )
                     )
                 case .rename:
                     edit = Edit(
                         cost: current.cost,
                         operation: .rename(
-                            id: current.first.uuid,
+                            id: current.first.id,
                             label: current.second.label
                         )
                     )
 
                     matchedNodes[current.second] = current.first
-                    matchedIDs[current.second.uuid] = current.first.uuid
+                    matchedIDs[current.second.id] = current.first.id
                 }
                 
                 edits.append(edit)
@@ -184,7 +184,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     func f(_ cur: Node) {
                         for child in cur.children {
                             if let descendant = matchedNodes[child] {
-                                descendents.append(descendant.uuid)
+                                descendents.append(descendant.id)
                             }
                             
                             f(child)
@@ -220,7 +220,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 var toRemove: [Node] = []
                 for child in parent.children {
                     for descID in descendants {
-                        if descID == child.uuid {
+                        if descID == child.id {
                             toRemove.append(child)
                             inserted.addChild(child: child, position: inserted.children.count)
                             child.parent = inserted
@@ -235,14 +235,14 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 let index = max(0, parent.children.count - childrenCount + 1 + position)
                 parent.addChild(child: inserted, position: index)
                 inserted.parent = parent
-                uniqueIDs.put(inserted, inserted.uuid)
+                uniqueIDs.put(inserted, inserted.id)
             case .insertRoot(let id, let label):
                 // insert a new root node
                 let inserted = Node(label, uuid: id)
                 inserted.addChild(child: resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
-                uniqueIDs.put(inserted, inserted.uuid)
+                uniqueIDs.put(inserted, inserted.id)
             case .delete(let id):
                 // delete node from the tree, promoting its children
                 let deletedNode = uniqueIDs.getInverse(id)
@@ -339,7 +339,7 @@ extension TreeDistance {
             for child in current.children {
                 f(child)
             }
-            result.put(current, current.uuid)
+            result.put(current, current.id)
         }
         
         return result
@@ -440,5 +440,12 @@ extension TreeDistance {
 //            }
 //            return comps.joined(separator: ", ").flanked("(", ")")
 //        }
+    }
+}
+
+extension TreeDistance.Edit: CustomStringConvertible {
+    public var description: String {
+        let comps = ["Edit(\(cost))", operation†]
+        return comps.joined(separator: " ").flanked("(", ")")
     }
 }

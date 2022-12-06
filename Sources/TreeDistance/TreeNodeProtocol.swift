@@ -6,7 +6,7 @@ public protocol TreeNodeProtocol: AnyObject, Hashable {
 
     init(_ label: Label, uuid: UUID?)
     
-    var uuid: UUID { get }
+    var id: UUID { get }
     var label: Label { get set }
     var children: OrderedSet<Self> { get set }
     var parent: Self? { get set }
