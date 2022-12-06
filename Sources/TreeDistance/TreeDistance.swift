@@ -3,7 +3,7 @@ import WolfBase
 
 public final class TreeDistance<Node: TreeNodeProtocol> {
     typealias PostorderMap = ReversibleMap<Node, Int>
-    typealias SeqMap = ReversibleMap<Node, Int>
+    typealias IDMap = ReversibleMap<Node, Int>
     public typealias Label = Node.Label
     
     public static func treeDistance(_ t1: Node, _ t2: Node) -> (cost: Double, edits: [Edit]) {
@@ -28,22 +28,22 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         let tree2NodesCount = tree2MaxIndex + 1
         var treeDistance: [[ForestTrail?]] = Array(repeating: Array(repeating: nil, count: tree1NodesCount), count: tree2NodesCount)
         
-        // prepare sequence numbers
-        for (node, n) in postorder1 {
-            node.seq = n
+        // prepare ID numbers
+        for (node, id) in postorder1 {
+            node.id = id
         }
         let offset = postorder1.count
-        for (node, n) in postorder2 {
-            node.seq = n + offset
+        for (node, id) in postorder2 {
+            node.id = id + offset
         }
-        var _nextSeq = postorder1.count + postorder2.count
-        var nextSeq: Int {
-            defer { _nextSeq += 1}
-            return _nextSeq
+        var _nextID = postorder1.count + postorder2.count
+        var nextID: Int {
+            defer { _nextID += 1}
+            return _nextID
         }
         
         var matchedNodes: [Node: Node] = [:]
-        var matchedSequenceNumbers: [Int: Int] = [:]
+        var matchedIDs: [Int: Int] = [:]
         
         // calculate tree distance
         for keyRoot1 in keyRoots1 {
@@ -143,27 +143,27 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 switch current.operation! {
                 case .insert:
                     let clone = current.first.clone()
-                    clone.seq = nextSeq
+                    clone.id = nextID
                     matchedNodes[current.first] = clone
-                    matchedSequenceNumbers[current.first.seq] = clone.seq
+                    matchedIDs[current.first.id] = clone.id
                     
                     if let second = current.second {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insert(
-                                seq: clone.seq,
+                                id: clone.id,
                                 label: clone.label,
-                                parentSeq: matchedNodes[second]!.seq,
+                                parentID: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
                                 childrenCount: current.second.children.count,
-                                descendantSeqs: []
+                                descendantIDs: []
                             )
                         )
                     } else {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insertRoot(
-                                seq: clone.seq,
+                                id: clone.id,
                                 label: clone.label
                             )
                         )
@@ -172,34 +172,34 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     edit = Edit(
                         cost: current.cost,
                         operation: .delete(
-                            seq: current.first.seq
+                            id: current.first.id
                         )
                     )
                 case .rename:
                     edit = Edit(
                         cost: current.cost,
                         operation: .rename(
-                            seq: current.first.seq,
+                            id: current.first.id,
                             label: current.second.label
                         )
                     )
 
                     matchedNodes[current.second] = current.first
-                    matchedSequenceNumbers[current.second.seq] = current.first.seq
+                    matchedIDs[current.second.id] = current.first.id
                 }
                 
                 edits.append(edit)
                 applyForestTrails(current.nextState)
                 
-                if case let .insert(seq, label, parentSeq, position, childrenCount, _) = edit.operation {
-                    var descendentSeqs: [Int] = []
+                if case let .insert(id, label, parentID, position, childrenCount, _) = edit.operation {
+                    var descendentIDs: [Int] = []
                     
                     f(current.first)
                     
                     func f(_ cur: Node) {
                         for child in cur.children {
                             if let descendant = matchedNodes[child] {
-                                descendentSeqs.append(descendant.seq)
+                                descendentIDs.append(descendant.id)
                             }
                             
                             f(child)
@@ -207,12 +207,12 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     }
 
                     edit.operation = .insert(
-                        seq: seq,
+                        id: id,
                         label: label,
-                        parentSeq: parentSeq,
+                        parentID: parentID,
                         position: position,
                         childrenCount: childrenCount,
-                        descendantSeqs: descendentSeqs
+                        descendantIDs: descendentIDs
                     )
                 }
             }
@@ -222,20 +222,20 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
     public static func transformTree(_ root: Node, edits: [Edit]) -> Node {
         var resultRoot = root
         
-        let seqNumbers = sequenceNumbers(root)
+        let ids = identifiers(root)
         
         for edit in edits {
             switch edit.operation {
-            case .insert(let seq, let label, let parentSeq, let position, let childrenCount, let descendantSeqs):
+            case .insert(let id, let label, let parentID, let position, let childrenCount, let descendantIDs):
                 // insert a child and make demoted siblings its new children
-                let existingNode = seqNumbers.getInverse(parentSeq)
-                let inserted = Node(label, seq: seq)
+                let existingNode = ids.getInverse(parentID)
+                let inserted = Node(label, id: id)
                 let parent = existingNode
                 
                 var toRemove: [Node] = []
                 for child in parent.children {
-                    for descSeq in descendantSeqs {
-                        if descSeq == child.seq {
+                    for descID in descendantIDs {
+                        if descID == child.id {
                             toRemove.append(child)
                             inserted.addChild(child: child, position: inserted.children.count)
                             child.parent = inserted
@@ -250,17 +250,17 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 let index = max(0, parent.children.count - childrenCount + 1 + position)
                 parent.addChild(child: inserted, position: index)
                 inserted.parent = parent
-                seqNumbers.put(inserted, inserted.seq)
-            case .insertRoot(let seq, let label):
+                ids.put(inserted, inserted.id)
+            case .insertRoot(let id, let label):
                 // insert a new root node
-                let inserted = Node(label, seq: seq)
+                let inserted = Node(label, id: id)
                 inserted.addChild(child: resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
-                seqNumbers.put(inserted, inserted.seq)
-            case .delete(let seq):
+                ids.put(inserted, inserted.id)
+            case .delete(let id):
                 // delete node from the tree, promoting its children
-                let deletedNode = seqNumbers.getInverse(seq)
+                let deletedNode = ids.getInverse(id)
                 let position = deletedNode.parent!.positionOfChild(deletedNode)
                 
                 for i in (0..<deletedNode.children.count).reversed() {
@@ -269,9 +269,9 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 }
                 
                 deletedNode.parent!.deleteChild(deletedNode)
-                seqNumbers.removeInverse(seq)
-            case .rename(let seq, let label):
-                let node = seqNumbers.getInverse(seq)
+                ids.removeInverse(id)
+            case .rename(let id, let label):
+                let node = ids.getInverse(id)
                 node.label = label
             }
         }
@@ -345,8 +345,8 @@ extension TreeDistance {
         return result
     }
     
-    static func sequenceNumbers(_ node: Node) -> SeqMap {
-        let result = SeqMap()
+    static func identifiers(_ node: Node) -> IDMap {
+        let result = IDMap()
         
         f(node)
         
@@ -354,7 +354,7 @@ extension TreeDistance {
             for child in current.children {
                 f(child)
             }
-            result.put(current, current.seq)
+            result.put(current, current.id)
         }
         
         return result
@@ -414,10 +414,10 @@ extension TreeDistance {
         public var operation: Operation
         
         public enum Operation {
-            case delete(seq: Int)
-            case rename(seq: Int, label: Label)
-            case insertRoot(seq: Int, label: Label)
-            case insert(seq: Int, label: Label, parentSeq: Int, position: Int, childrenCount: Int, descendantSeqs: [Int])
+            case delete(id: Int)
+            case rename(id: Int, label: Label)
+            case insertRoot(id: Int, label: Label)
+            case insert(id: Int, label: Label, parentID: Int, position: Int, childrenCount: Int, descendantIDs: [Int])
         }
         
         init(cost: Double, operation: Operation) {
