@@ -222,7 +222,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
     public static func transformTree(_ root: Node, edits: [Edit]) -> Node {
         var resultRoot = root
         
-        let ids = identifiers(root)
+        let ids = postorderIdentifiers(root)
         
         for edit in edits {
             switch edit.operation {
@@ -234,8 +234,9 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 
                 var toRemove: [Node] = []
                 for child in parent.children {
+                    let childID = ids.get(child)
                     for descID in descendantIDs {
-                        if descID == child.id {
+                        if descID == childID {
                             toRemove.append(child)
                             inserted.addChild(child: child, position: inserted.children.count)
                             child.parent = inserted
@@ -340,21 +341,6 @@ extension TreeDistance {
             }
             result.put(current, nextID)
             nextID += 1
-        }
-        
-        return result
-    }
-    
-    static func identifiers(_ node: Node) -> IDMap {
-        let result = IDMap()
-        
-        f(node)
-        
-        func f(_ current: Node) {
-            for child in current.children {
-                f(child)
-            }
-            result.put(current, current.id)
         }
         
         return result
