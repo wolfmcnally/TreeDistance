@@ -428,18 +428,6 @@ extension TreeDistance {
         public static func < (lhs: Edit, rhs: Edit) -> Bool {
             lhs.ordinal < rhs.ordinal
         }
-        
-//        public var description: String {
-//            var comps: [String] = []
-//            comps.append(operation†)
-//            comps.append("cost: \(cost)")
-//            if operation == .insert {
-//                comps.append("position: \(position†)")
-//                comps.append("descendantIDs: \(descendantIDs†)")
-//                comps.append("childrenCount: \(childrenCount†)")
-//            }
-//            return comps.joined(separator: ", ").flanked("(", ")")
-//        }
     }
 }
 
