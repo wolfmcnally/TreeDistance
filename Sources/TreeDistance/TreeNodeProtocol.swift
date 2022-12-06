@@ -4,7 +4,7 @@ import OrderedCollections
 public protocol TreeNodeProtocol: AnyObject, Hashable {
     associatedtype Label
 
-    init(_ label: Label, uuid: UUID?)
+    init(_ label: Label, id: UUID?)
     
     var id: UUID { get }
     var label: Label { get set }

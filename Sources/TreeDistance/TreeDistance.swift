@@ -214,7 +214,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
             case .insert(let id, let label, let parent, let position, let childrenCount, let descendants):
                 // insert a child and make demoted siblings its new children
                 let existingNode = uniqueIDs.getInverse(parent)
-                let inserted = Node(label, uuid: id)
+                let inserted = Node(label, id: id)
                 let parent = existingNode
                 
                 var toRemove: [Node] = []
@@ -238,7 +238,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 uniqueIDs.put(inserted, inserted.id)
             case .insertRoot(let id, let label):
                 // insert a new root node
-                let inserted = Node(label, uuid: id)
+                let inserted = Node(label, id: id)
                 inserted.addChild(child: resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
