@@ -143,15 +143,16 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 switch current.operation! {
                 case .insert:
                     let clone = current.first.clone()
-                    clone.id = nextID
+                    let cloneID = nextID
+                    clone.id = cloneID
                     matchedNodes[current.first] = clone
-                    matchedIDs[current.first.id] = clone.id
+                    matchedIDs[current.first.id] = cloneID
                     
                     if let second = current.second {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insert(
-                                id: clone.id,
+                                id: cloneID,
                                 label: clone.label,
                                 parentID: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
@@ -163,7 +164,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                         edit = Edit(
                             cost: current.cost,
                             operation: .insertRoot(
-                                id: clone.id,
+                                id: cloneID,
                                 label: clone.label
                             )
                         )
@@ -251,14 +252,14 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 let index = max(0, parent.children.count - childrenCount + 1 + position)
                 parent.addChild(child: inserted, position: index)
                 inserted.parent = parent
-                ids.put(inserted, inserted.id)
+                ids.put(inserted, id)
             case .insertRoot(let id, let label):
                 // insert a new root node
                 let inserted = Node(label, id: id)
                 inserted.addChild(child: resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
-                ids.put(inserted, inserted.id)
+                ids.put(inserted, id)
             case .delete(let id):
                 // delete node from the tree, promoting its children
                 let deletedNode = ids.getInverse(id)
