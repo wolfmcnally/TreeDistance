@@ -58,6 +58,10 @@ final class ReversibleMap<K: Hashable, V: Hashable> {
     func getInverse(_ v: V) -> K {
         inverse[v]!
     }
+    
+    var count: Int {
+        dict.count
+    }
 }
 
 extension ReversibleMap: Sequence {

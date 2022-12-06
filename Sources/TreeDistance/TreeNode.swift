@@ -3,12 +3,14 @@ import OrderedCollections
 
 public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
     public let id: UUID
+    public var seq: Int!
     public var label: Label
     public var parent: TreeNode? = nil
     public var children: OrderedSet<TreeNode> = []
     
-    public init(_ label: Label, id: UUID? = nil) {
+    public init(_ label: Label, id: UUID? = nil, seq: Int? = nil) {
         self.id = id ?? UUID()
+        self.seq = seq
         self.label = label
     }
     
