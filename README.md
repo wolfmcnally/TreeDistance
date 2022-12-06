@@ -6,4 +6,4 @@ A Swift implementation of Zhang-Shasha algorithm for *ordered* tree distance cal
 
 Based on the [Java implementation](https://github.com/tmatek/zhang-shasha-java).
 
-For further information see [the paper by K. Zhang et al.](http://grantjenks.com/wiki/_media/ideas/simple_fast_algorithms_for_the_editing_distance_between_tree_and_related_problems.pdf).
+For further information see [the paper by K. Zhang et al](http://grantjenks.com/wiki/_media/ideas/simple_fast_algorithms_for_the_editing_distance_between_tree_and_related_problems.pdf).
