@@ -169,7 +169,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                             operation: .insert(
                                 id: cloneID,
                                 label: clone.label,
-                                parentID: matchedNodes[second]!.id,
+                                parent: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
                                 childrenCount: current.second.children.count,
                                 descendants: []
@@ -225,7 +225,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     edit.operation = .insert(
                         id: id,
                         label: label,
-                        parentID: parentID,
+                        parent: parentID,
                         position: position,
                         childrenCount: childrenCount,
                         descendants: descendentIDs
@@ -419,7 +419,7 @@ extension TreeDistance {
             case delete(id: Int)
             case rename(id: Int, label: Label)
             case insertRoot(id: Int, label: Label)
-            case insert(id: Int, label: Label, parentID: Int, position: Int, childrenCount: Int, descendants: [Int])
+            case insert(id: Int, label: Label, parent: Int, position: Int, childrenCount: Int, descendants: [Int])
         }
         
         init(cost: Double, operation: Operation) {
