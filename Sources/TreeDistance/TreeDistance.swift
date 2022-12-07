@@ -166,8 +166,8 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     if let second = current.second {
                         edit = Edit(
                             cost: current.cost,
+                            id: cloneID,
                             operation: .insert(
-                                id: cloneID,
                                 label: clone.label,
                                 parent: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
@@ -178,8 +178,8 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     } else {
                         edit = Edit(
                             cost: current.cost,
+                            id: cloneID,
                             operation: .insertRoot(
-                                id: cloneID,
                                 label: clone.label
                             )
                         )
@@ -187,15 +187,14 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 case .delete:
                     edit = Edit(
                         cost: current.cost,
-                        operation: .delete(
-                            id: current.first.id
-                        )
+                        id: current.first.id,
+                        operation: .delete
                     )
                 case .rename:
                     edit = Edit(
                         cost: current.cost,
+                        id: current.first.id,
                         operation: .rename(
-                            id: current.first.id,
                             label: current.second.label
                         )
                     )
@@ -207,7 +206,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 edits.append(edit)
                 applyForestTrails(current.nextState)
                 
-                if case let .insert(id, label, parentID, position, childrenCount, _) = edit.operation {
+                if case let .insert(label, parentID, position, childrenCount, _) = edit.operation {
                     var descendentIDs: [Int] = []
                     
                     f(current.first)
@@ -223,7 +222,6 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     }
 
                     edit.operation = .insert(
-                        id: id,
                         label: label,
                         parent: parentID,
                         position: position,
@@ -242,10 +240,10 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         
         for edit in edits {
             switch edit.operation {
-            case .insert(let id, let label, let parentID, let position, let childrenCount, let descendants):
+            case .insert(let label, let parentID, let position, let childrenCount, let descendants):
                 // insert a child and make demoted siblings its new children
                 let existingNode = ids.getInverse(parentID)
-                let inserted = Node(label, id: id)
+                let inserted = Node(label, id: edit.id)
                 let parent = existingNode
                 
                 var toRemove: [Node] = []
@@ -267,17 +265,17 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 let index = max(0, parent.children.count - childrenCount + 1 + position)
                 parent.addChild(inserted, position: index)
                 inserted.parent = parent
-                ids.put(inserted, id)
-            case .insertRoot(let id, let label):
+                ids.put(inserted, edit.id)
+            case .insertRoot(let label):
                 // insert a new root node
-                let inserted = Node(label, id: id)
+                let inserted = Node(label, id: edit.id)
                 inserted.addChild(resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
-                ids.put(inserted, id)
-            case .delete(let id):
+                ids.put(inserted, edit.id)
+            case .delete:
                 // delete node from the tree, promoting its children
-                let deletedNode = ids.getInverse(id)
+                let deletedNode = ids.getInverse(edit.id)
                 let position = deletedNode.parent!.positionOfChild(deletedNode)
                 
                 for i in (0..<deletedNode.children.count).reversed() {
@@ -286,9 +284,9 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 }
                 
                 deletedNode.parent!.deleteChild(deletedNode)
-                ids.removeInverse(id)
-            case .rename(let id, let label):
-                let node = ids.getInverse(id)
+                ids.removeInverse(edit.id)
+            case .rename(let label):
+                let node = ids.getInverse(edit.id)
                 node.label = label
             }
         }
@@ -413,17 +411,19 @@ extension TreeDistance {
 extension TreeDistance {
     public class Edit: Comparable {
         public let cost: Double
+        public let id: Int
         public var operation: Operation
         
         public enum Operation {
-            case delete(id: Int)
-            case rename(id: Int, label: Label)
-            case insertRoot(id: Int, label: Label)
-            case insert(id: Int, label: Label, parent: Int, position: Int, childrenCount: Int, descendants: [Int])
+            case delete
+            case rename(label: Label)
+            case insertRoot(label: Label)
+            case insert(label: Label, parent: Int, position: Int, childrenCount: Int, descendants: [Int])
         }
         
-        init(cost: Double, operation: Operation) {
+        init(cost: Double, id: Int, operation: Operation) {
             self.cost = cost
+            self.id = id
             self.operation = operation
         }
         
