@@ -6,7 +6,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
     typealias IDMap = ReversibleMap<Node, Int>
     public typealias Label = Node.Label
     
-    public static func treeDistance(_ t1: Node, _ t2: Node) -> (cost: Double, edits: [Edit]) {
+    public static func treeDistance(_ t1: Node, _ t2: Node, filterMatches: Bool = true) -> (cost: Double, edits: [Edit]) {
         var edits: [Edit] = []
         
         // prepare postorder numbering
@@ -53,8 +53,23 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         }
         
         applyForestTrails(treeDistance[tree2MaxIndex][tree1MaxIndex]!)
+
+        /// If requested, filter out all `.rename` operations that also have a cost of zero.
+        /// Never filter non-zero cost operations.
+        if filterMatches {
+            edits = edits.filter { edit in
+                guard edit.cost == 0 else {
+                    return true
+                }
+                if case .rename = edit.operation {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        }
         edits.sort()
-        
+
         let cost = treeDistance[tree2MaxIndex][tree1MaxIndex]!.totalCost
         
         return (cost, edits)
@@ -157,7 +172,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                                 parentID: matchedNodes[second]!.id,
                                 position: current.first.parent!.positionOfChild(current.first),
                                 childrenCount: current.second.children.count,
-                                descendantIDs: []
+                                descendants: []
                             )
                         )
                     } else {
@@ -213,7 +228,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                         parentID: parentID,
                         position: position,
                         childrenCount: childrenCount,
-                        descendantIDs: descendentIDs
+                        descendants: descendentIDs
                     )
                 }
             }
@@ -227,7 +242,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
         
         for edit in edits {
             switch edit.operation {
-            case .insert(let id, let label, let parentID, let position, let childrenCount, let descendantIDs):
+            case .insert(let id, let label, let parentID, let position, let childrenCount, let descendants):
                 // insert a child and make demoted siblings its new children
                 let existingNode = ids.getInverse(parentID)
                 let inserted = Node(label, id: id)
@@ -236,7 +251,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 var toRemove: [Node] = []
                 for child in parent.children {
                     let childID = ids.get(child)
-                    for descID in descendantIDs {
+                    for descID in descendants {
                         if descID == childID {
                             toRemove.append(child)
                             inserted.addChild(child, position: inserted.children.count)
@@ -321,7 +336,7 @@ extension TreeDistance {
         var description: String {
             var comps: [String] = []
             if let operation { comps.append(operation†) }
-            comps.append("cost: \(Int(cost))")
+            comps.append("cost: \(cost)")
             if let first { comps.append("first: \(first)") }
             if let second { comps.append("second: \(second)") }
             if let nextState { comps.append("nextState: \(nextState)")}
@@ -404,7 +419,7 @@ extension TreeDistance {
             case delete(id: Int)
             case rename(id: Int, label: Label)
             case insertRoot(id: Int, label: Label)
-            case insert(id: Int, label: Label, parentID: Int, position: Int, childrenCount: Int, descendantIDs: [Int])
+            case insert(id: Int, label: Label, parentID: Int, position: Int, childrenCount: Int, descendants: [Int])
         }
         
         init(cost: Double, operation: Operation) {
