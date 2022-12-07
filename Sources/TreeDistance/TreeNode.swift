@@ -40,3 +40,26 @@ public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
         label.transformationCost(operation: operation, other: other?.label)
     }
 }
+
+extension TreeNode: CustomStringConvertible {
+    public var description: String {
+        String(describing: label)
+    }
+}
+
+public extension TreeNode {
+    func format() -> String {
+        var elements: [(Label, Int)] = []
+        
+        func f(_ current: TreeNode<Label>, _ level: Int) {
+            elements.append((current.label, level))
+            for child in current.children {
+                f(child, level + 1)
+            }
+        }
+        
+        f(self, 0)
+        
+        return elements.map { "\(String(repeating: " ", count: $1 * 4))\($0)" }.joined(separator: "\n")
+    }
+}
