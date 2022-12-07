@@ -1,12 +1,7 @@
 import TreeDistance
+import WolfBase
 
 public typealias StringTreeNode = TreeNode<String>
-
-extension StringTreeNode: CustomStringConvertible {
-    public var description: String {
-        label
-    }
-}
 
 extension StringTreeNode {
     public var treeString: String {
@@ -101,13 +96,16 @@ public extension StringTreeNode {
 
 extension String: TransformableLabel {
     public func transformationCost(operation: TreeOperation, other: String?) -> Double {
+        let cost: Double
         switch operation {
         case .rename:
-            return self == other! ? 0 : 1
+            cost = self == other! ? 0 : 1
         case .insert:
-            return 1
+            cost = 1
         case .delete:
-            return 1
+            cost = 1
         }
+//        print("\(self) -> \(other†): \(cost)")
+        return cost
     }
 }

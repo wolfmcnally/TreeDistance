@@ -88,6 +88,19 @@ final class TreeDistanceTests: XCTestCase {
         }
     }
     
+    func test1() {
+        let a = "a(b)"
+        let b = "b"
+        let t1 = StringTreeNode.fromString(tree: a)
+        let t2 = StringTreeNode.fromString(tree: b)
+        let edits = TreeDistance.treeDistance(t1, t2).edits
+        for edit in edits {
+            print(edit)
+        }
+        let c = TreeDistance.transformTree(t1, edits: edits).treeString
+        XCTAssertEqual(c, b)
+    }
+    
     func makeRNG() -> some RandomNumberGenerator {
         let state: Xoroshiro256StarStar.State = (7943088474095033134, 2201563221578303974, 15451724982873067437, 14892261624674498107)
         return Xoroshiro256StarStar(state: state)
