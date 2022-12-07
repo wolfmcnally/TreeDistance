@@ -35,7 +35,7 @@ public extension StringTreeNode {
                     f(parent: cur)
                     
                     if let parent {
-                        parent.addChild(child: cur)
+                        parent.addChild(cur)
                         cur.parent = parent
                     } else {
                         return cur
@@ -44,7 +44,7 @@ public extension StringTreeNode {
                     if node != "" {
                         let cur = StringTreeNode(node)
                         node = ""
-                        parent!.addChild(child: cur)
+                        parent!.addChild(cur)
                         cur.parent = parent
                     }
                     
@@ -88,7 +88,7 @@ public extension StringTreeNode {
             let nChildren = Int.random(in: 0 ..< maxChildren)
             for _ in 0 ..< nChildren {
                 let child = Self(nextLabel())
-                current.addChild(child: child)
+                current.addChild(child)
                 child.parent = current
                 f(child, depth: depth + 1)
             }

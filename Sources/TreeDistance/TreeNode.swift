@@ -12,7 +12,7 @@ public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
         self.label = label
     }
     
-    public func addChild(child: TreeNode, position: Int? = nil) {
+    public func addChild(_ child: TreeNode, position: Int? = nil) {
         if let position {
             children.insert(child, at: position)
         } else {

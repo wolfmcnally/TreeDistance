@@ -10,7 +10,7 @@ public protocol TreeNodeProtocol: AnyObject, Hashable {
     var label: Label { get set }
     var children: OrderedSet<Self> { get set }
     var parent: Self? { get set }
-    func addChild(child: Self, position: Int?)
+    func addChild(_ child: Self, position: Int?)
     func deleteChild(_ child: Self)
     func positionOfChild(_ child: Self) -> Int
     func transformationCost(operation: TreeOperation, other: Self?) -> Double

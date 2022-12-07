@@ -239,7 +239,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     for descID in descendantIDs {
                         if descID == childID {
                             toRemove.append(child)
-                            inserted.addChild(child: child, position: inserted.children.count)
+                            inserted.addChild(child, position: inserted.children.count)
                             child.parent = inserted
                         }
                     }
@@ -250,13 +250,13 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 }
                 
                 let index = max(0, parent.children.count - childrenCount + 1 + position)
-                parent.addChild(child: inserted, position: index)
+                parent.addChild(inserted, position: index)
                 inserted.parent = parent
                 ids.put(inserted, id)
             case .insertRoot(let id, let label):
                 // insert a new root node
                 let inserted = Node(label, id: id)
-                inserted.addChild(child: resultRoot, position: 0)
+                inserted.addChild(resultRoot, position: 0)
                 resultRoot.parent = inserted
                 resultRoot = inserted
                 ids.put(inserted, id)
@@ -266,7 +266,7 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                 let position = deletedNode.parent!.positionOfChild(deletedNode)
                 
                 for i in (0..<deletedNode.children.count).reversed() {
-                    deletedNode.parent!.addChild(child: deletedNode.children[i], position: position)
+                    deletedNode.parent!.addChild(deletedNode.children[i], position: position)
                     deletedNode.children[i].parent = deletedNode.parent!
                 }
                 
