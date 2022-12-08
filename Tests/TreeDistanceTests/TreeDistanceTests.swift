@@ -39,7 +39,7 @@ final class TreeDistanceTests: XCTestCase {
         run("a(c)", "a(d)", 1)
         run("4(1,2,3)", "4(3(1,2))", 2)
         run("a(b,c)", "a(b,g)", 1)
-        
+
         var rng = makeRNG()
         for _ in 0..<100 {
             let tree = StringTreeNode(maxDepth: 5, maxChildren: 4, using: &rng).treeString

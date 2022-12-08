@@ -4,7 +4,7 @@ import OrderedCollections
 public final class TreeNode<Label: TransformableLabel>: TreeNodeProtocol {
     public var id: Int!
     public var label: Label
-    public var parent: TreeNode? = nil
+    public weak var parent: TreeNode? = nil
     public var children: OrderedSet<TreeNode> = []
     
     public init(_ label: Label, id: Int? = nil) {

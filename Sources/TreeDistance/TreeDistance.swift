@@ -165,7 +165,6 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                     
                     if let second = current.second {
                         edit = Edit(
-                            cost: current.cost,
                             id: cloneID,
                             operation: .insert(
                                 label: clone.label,
@@ -173,30 +172,31 @@ public final class TreeDistance<Node: TreeNodeProtocol> {
                                 position: current.first.parent!.positionOfChild(current.first),
                                 childrenCount: current.second.children.count,
                                 descendants: []
-                            )
+                            ),
+                            cost: current.cost
                         )
                     } else {
                         edit = Edit(
-                            cost: current.cost,
                             id: cloneID,
                             operation: .insertRoot(
                                 label: clone.label
-                            )
+                            ),
+                            cost: current.cost
                         )
                     }
                 case .delete:
                     edit = Edit(
-                        cost: current.cost,
                         id: current.first.id,
-                        operation: .delete
+                        operation: .delete,
+                        cost: current.cost
                     )
                 case .rename:
                     edit = Edit(
-                        cost: current.cost,
                         id: current.first.id,
                         operation: .rename(
                             label: current.second.label
-                        )
+                        ),
+                        cost: current.cost
                     )
 
                     matchedNodes[current.second] = current.first
@@ -304,22 +304,26 @@ extension TreeDistance {
         var first: Node! = nil
         var second: Node! = nil
         
-        init() {
-            self.cost = 0
+        init(cost: Double) {
+            self.cost = cost
         }
         
-        init(operation: TreeOperation, first: Node, second: Node? = nil) {
+        convenience init() {
+            self.init(cost: 0)
+        }
+        
+        convenience init(operation: TreeOperation, first: Node, second: Node? = nil) {
+            self.init(cost: first.transformationCost(operation: operation, other: second))
             self.operation = operation
             self.first = first
             self.second = second
-            self.cost = first.transformationCost(operation: operation, other: second)
         }
         
-        init(treeState: ForestTrail, first: Node, second: Node) {
+        convenience init(treeState: ForestTrail, first: Node, second: Node) {
+            self.init(cost: treeState.totalCost)
             self.operation = .rename
             self.first = first
             self.second = second
-            self.cost = treeState.totalCost
             self.treeState = treeState
         }
         
@@ -342,7 +346,9 @@ extension TreeDistance {
             return comps.joined(separator: ", ").flanked("(", ")")
         }
     }
-    
+}
+
+extension TreeDistance {
     static func postorderIdentifiers(_ node: Node) -> PostorderMap {
         var nextID = 0
         let result = PostorderMap()
@@ -410,7 +416,7 @@ extension TreeDistance {
 
 extension TreeDistance {
     public class Edit: Comparable {
-        public let cost: Double
+        public let cost: Double!
         public let id: Int
         public var operation: Operation
         
@@ -421,10 +427,10 @@ extension TreeDistance {
             case insert(label: Label, parent: Int, position: Int, childrenCount: Int, descendants: [Int])
         }
         
-        init(cost: Double, id: Int, operation: Operation) {
-            self.cost = cost
+        public init(id: Int, operation: Operation, cost: Double? = nil) {
             self.id = id
             self.operation = operation
+            self.cost = cost
         }
         
         var ordinal: Int {
@@ -450,7 +456,7 @@ extension TreeDistance {
 
 extension TreeDistance.Edit: CustomStringConvertible {
     public var description: String {
-        let comps = ["Edit(\(cost))", operation†]
+        let comps = ["Edit(\(cost†))", operation†]
         return comps.joined(separator: " ").flanked("(", ")")
     }
 }
