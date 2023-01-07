@@ -4,15 +4,14 @@ import PackageDescription
 
 let package = Package(
     name: "TreeDistance",
-    platforms: [.macOS(.v13), .iOS(.v15)],
     products: [
         .library(
             name: "TreeDistance",
             targets: ["TreeDistance"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/wolfmcnally/WolfBase.git", .upToNextMajor(from: "4.0.0")),
-        .package(url: "https://github.com/apple/swift-collections", branch: "main"),
+        .package(url: "https://github.com/wolfmcnally/WolfBase.git", .upToNextMajor(from: "5.0.0")),
+        .package(url: "https://github.com/wolfmcnally/swift-collections", .upToNextMajor(from: "1.1.0")),
     ],
     targets: [
         .target(

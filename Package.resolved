@@ -12,10 +12,10 @@
     {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections",
+      "location" : "https://github.com/wolfmcnally/swift-collections",
       "state" : {
-        "branch" : "main",
-        "revision" : "0d4b9e3346eb0373ac6f85fe799b44b9b7e86d7e"
+        "revision" : "53a8adc54374f620002a3b6401d39e0feb3c57ae",
+        "version" : "1.1.0"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/wolfmcnally/WolfBase.git",
       "state" : {
-        "revision" : "883d3e868ab61b2001f2cbf4566bb5e72ab10603",
-        "version" : "4.7.0"
+        "revision" : "a739d553c600a203c4f84eb26ceb87d38b298456",
+        "version" : "5.0.0"
       }
     }
   ],
