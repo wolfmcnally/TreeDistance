@@ -1,5 +1,4 @@
 import Foundation
-import WolfBase
 
 final class ReversibleMap<K: Hashable, V: Hashable> {
     var dict: [K: V]

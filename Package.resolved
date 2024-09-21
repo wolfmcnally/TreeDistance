@@ -1,4 +1,5 @@
 {
+  "originHash" : "318177ba788d45586d14445fcc2d068de73e8d0800ddc452c1b9dfbc131b85d5",
   "pins" : [
     {
       "identity" : "swift-algorithms",
@@ -12,10 +13,10 @@
     {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/wolfmcnally/swift-collections",
+      "location" : "https://github.com/apple/swift-collections",
       "state" : {
-        "revision" : "53a8adc54374f620002a3b6401d39e0feb3c57ae",
-        "version" : "1.1.0"
+        "revision" : "9bf03ff58ce34478e66aaee630e491823326fd06",
+        "version" : "1.1.3"
       }
     },
     {
@@ -32,10 +33,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/wolfmcnally/WolfBase.git",
       "state" : {
-        "revision" : "91c8cad45e6325ab76db1b5b60c5f6616d52a0cb",
-        "version" : "6.0.0"
+        "revision" : "b2515098bb6f46a8c0386b383b0ed9282828d1c4",
+        "version" : "7.0.0"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

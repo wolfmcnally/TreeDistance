@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -10,8 +10,8 @@ let package = Package(
             targets: ["TreeDistance"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/wolfmcnally/WolfBase.git", .upToNextMajor(from: "6.0.0")),
-        .package(url: "https://github.com/wolfmcnally/swift-collections", .upToNextMajor(from: "1.1.0")),
+        .package(url: "https://github.com/wolfmcnally/WolfBase.git", .upToNextMajor(from: "7.0.0")),
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMajor(from: "1.1.3")),
     ],
     targets: [
         .target(
